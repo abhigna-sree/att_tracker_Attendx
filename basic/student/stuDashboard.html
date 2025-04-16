@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            font-family: Arial, sans-serif;
+        }
+
+        .full-screen {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .keynumbers .card {
+            transition: transform 0.3s ease;
+            height: 100%; /* Ensures all cards are equal height */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #ADBBDA;
+        }
+
+        .keynumbers .card:hover {
+            transform: scale(1.05);
+        }
+
+        .keynumbers .card img {
+            width: 100%;
+            height: 170px;
+            object-fit: cover;
+        }
+
+        .keynumbers .card button {
+            width: 50%;
+            margin-top: auto;
+        }
+
+        .carousel-item img {
+            height: 300px;
+            object-fit: cover;
+        }
+
+        .carousel-box{
+            background: rgba(0, 0, 0, 0.5); /* Semi-transparent dark background */
+            backdrop-filter: blur(5px);
+            /* width: 30%; */
+            padding: 10px;
+        }
+        .appname{
+            font-size: 25px;
+            font-weight: 600;
+        }
+        .container1{
+            background-color: #EDE8F5;
+        }
+        .carbut{
+            background-color: #3D52A0;
+            color: white;
+        }
+        /* .nav-link{
+            color: #ADBBDA;
+        } */
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand appname" href="/">AttendX</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="projects.html">Projects</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Profile</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- container 1 -->
+    <div class="container-fluid  full-screen container1">
+        <div class="container text-center">
+            <h1 class="stuname">Welcome,</h1>
+            <h5 class="subheading">Explore projects & opportunities!</h5>
+            <div class="row mt-4 keynumbers">
+                <div class="col-md-4">
+                    <div class="card p-4 shadow">
+                        <img src="../imgs/ap.webp" class="img-fluid" alt="Available Projects">
+                        <h3>Available Projects</h3>
+                        <p>Browse and pick projects. First come, first served!</p>
+                        <button class="btn carbut">View →</button>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card p-4 shadow">
+                        <img src="../imgs/rp.jpg" class="img-fluid" alt="Registered Projects">
+                        <h3>Registered Projects</h3>
+                        <p>Check and modify your registered projects.</p>
+                        <button class="btn carbut">View →</button>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card p-4 shadow">
+                        <img src="../imgs/sp1.png" class="img-fluid" alt="Student Profile">
+                        <h3>Student Profile</h3>
+                        <p>View and update your details.</p>
+                        <button class="btn carbut">View →</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Container 2 -->
+    <div class="container-fluid bg-dark text-white full-screen">
+        <div class="container text-center">
+            <h1 class="mb-4">Recommended Projects</h1>
+            <div id="projectCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    <div class="carousel-item active">
+                        <img src="../imgs/p1.jpg" class="d-block w-100 carimg" alt="Jewelry Design Project">
+                        <div class="carousel-caption carousel-box">
+                            <h3>Jewelry Design Generation</h3>
+                            <p>Upload a basic sketch and generate realistic jewelry designs using AI.</p>
+                            <button class="btn btn-primary">Apply Now</button>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <img src="../imgs/p2.jpg" class="d-block w-100" alt="Machine Learning Project">
+                        <div class="carousel-caption carousel-box">
+                            <h3>Machine Learning for Healthcare</h3>
+                            <p>Develop AI models to predict diseases and improve diagnostics.</p>
+                            <button class="btn btn-primary">Apply Now</button>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <img src="../imgs/p3.jpg" class="d-block w-100" alt="Web Development Project">
+                        <div class="carousel-caption carousel-box">
+                            <h3>Interactive Web Development</h3>
+                            <p>Build responsive and dynamic web applications using MERN stack.</p>
+                            <button class="btn btn-primary">Apply Now</button>
+                        </div>
+                    </div>
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#projectCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon"></span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#projectCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>

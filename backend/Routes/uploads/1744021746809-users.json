@@ -1,0 +1,23 @@
+[
+    {
+        "name": "Mr. Gnanesh",
+        "rollno": "fac004",
+        "phone": "9876576210",
+        "password": "gnanesh",
+        "role": "faculty"
+    },
+    {
+        "name": "Mrs. Arshiya",
+        "rollno": "adminfac005",
+        "phone": "9123459389",
+        "password": "arshiya",
+        "role": "faculty"
+    },
+    {
+        "name": "Mrs. Sajida",
+        "rollno": "fac006",
+        "phone": "9876542210",
+        "password": "sajida",
+        "role": "faculty"
+    }
+]
