@@ -30,7 +30,7 @@ mongoose
   .catch((err) => console.log("DB Connection Error:", err));
 
 
-app.get("/userdetails/:id", authenticate, async (req, res) => {
+app.get("/userdetails/:id", async (req, res) => {
   try {
     const userId = req.params.id;
     const user = await User.findById(userId).select("-password"); // Exclude password
@@ -166,7 +166,6 @@ app.get("/attendance", async (req, res) => {
       res.status(500).json({ error: "Server error" });
   }
 });
-
 app.post("/api/attendance", async (req, res) => {
   try {
     const { attendanceData } = req.body;
