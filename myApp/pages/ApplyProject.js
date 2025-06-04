@@ -64,7 +64,10 @@ const ApplyProject = () => {
 
   const handleSubmit = async () => {
     if (teamMembers.some((roll) => roll === "")) {
-      Alert.alert("Validation Error", "Please fill all team members' roll numbers.");
+      Alert.alert(
+        "Validation Error",
+        "Please fill all team members' roll numbers."
+      );
       return;
     }
 
@@ -119,46 +122,59 @@ const ApplyProject = () => {
 const styles = StyleSheet.create({
   container: {
     padding: 20,
+    backgroundColor: "#EDE8F5",
+    minHeight: "100%",
   },
   heading: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "bold",
     marginBottom: 20,
+    color: "#000",
+    textAlign: "center",
   },
   inputGroup: {
     marginBottom: 15,
+    backgroundColor: "#ADBBDA",
+    padding: 15,
+    borderRadius: 10,
+    elevation: 3,
   },
   label: {
-    marginBottom: 5,
+    marginBottom: 8,
     fontSize: 16,
+    color: "#000",
+    fontWeight: "600",
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: "#3D52A0",
     borderRadius: 5,
-    padding: 10,
+    padding: 12,
     backgroundColor: "#fff",
   },
   disabledInput: {
     backgroundColor: "#e0e0e0",
   },
   submitButton: {
-    backgroundColor: "green",
+    backgroundColor: "#3D52A0",
     padding: 12,
     borderRadius: 5,
     alignItems: "center",
     marginTop: 20,
+    elevation: 3,
   },
   cancelButton: {
-    backgroundColor: "red",
+    backgroundColor: "#dc3545",
     padding: 12,
     borderRadius: 5,
     alignItems: "center",
     marginTop: 10,
+    elevation: 3,
   },
   buttonText: {
-    color: "#fff",
+    color: "white",
     fontSize: 16,
+    fontWeight: "bold",
   },
 });
 

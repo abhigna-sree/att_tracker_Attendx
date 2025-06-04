@@ -128,7 +128,7 @@ app.get("/api/admin/active-attendance", async (req, res) => {
         });
         studentData.push({
           rollNo: assign.rollNo,
-          name: assign.name,
+          // name: assign.name,
           attendanceStatus: attendance?.attendanceStatus || false,
         });
       }

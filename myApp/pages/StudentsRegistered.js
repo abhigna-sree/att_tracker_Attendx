@@ -9,8 +9,8 @@ import {
   StyleSheet,
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Buffer } from 'buffer';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Buffer } from "buffer";
 import axios from "axios";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -27,13 +27,15 @@ const StudentsRegistered = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-      const token = await AsyncStorage.getItem('token');
+        const token = await AsyncStorage.getItem("token");
         if (!token) {
           navigation.navigate("Login");
           return;
         }
 
-        const decodedToken = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString())
+        const decodedToken = JSON.parse(
+          Buffer.from(token.split(".")[1], "base64").toString()
+        );
         const response = await axios.get(
           `http://192.168.230.46:4000/vendor/studentsRegistered/${pid}`
         );
@@ -84,11 +86,7 @@ const StudentsRegistered = () => {
           onPress={() => handleSort(key)}
         >
           <Text style={styles.headerText}>{label}</Text>
-          <Ionicons
-            size={16}
-            color="gray"
-            style={{ marginLeft: 4 }}
-          />
+          <Ionicons size={16} color="gray" style={{ marginLeft: 4 }} />
         </TouchableOpacity>
       ))}
     </View>
@@ -127,36 +125,61 @@ const StudentsRegistered = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: "#fff" },
-  title: { fontSize: 20, fontWeight: "bold", marginBottom: 12,marginTop: 12  },
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: "#EDE8F5",
+    minHeight: "100%",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 12,
+    marginTop: 12,
+    color: "#000",
+    textAlign: "center",
+  },
   searchInput: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 8,
+    borderColor: "#3D52A0",
+    borderRadius: 10,
+    padding: 12,
     marginBottom: 12,
+    backgroundColor: "#fff",
   },
   headerRow: {
     flexDirection: "row",
-    backgroundColor: "#f8f9fa",
-    borderBottomWidth: 1,
-    borderColor: "#dee2e6",
+    backgroundColor: "#ADBBDA",
+    borderRadius: 10,
+    marginBottom: 5,
+    elevation: 3,
   },
   headerCell: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 5,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
   },
-  headerText: { fontWeight: "600", fontSize: 14 },
+  headerText: {
+    fontWeight: "600",
+    fontSize: 16,
+    color: "#000",
+  },
   row: {
     flexDirection: "row",
-    borderBottomWidth: 1,
-    borderColor: "#dee2e6",
-    paddingVertical: 10,
+    backgroundColor: "#fff",
+    borderRadius: 5,
+    marginBottom: 5,
+    paddingVertical: 12,
+    elevation: 2,
   },
-  cell: { flex: 1, fontSize: 14, paddingHorizontal: 5 },
+  cell: {
+    flex: 1,
+    fontSize: 14,
+    paddingHorizontal: 8,
+    color: "#000",
+  },
 });
 
 export default StudentsRegistered;

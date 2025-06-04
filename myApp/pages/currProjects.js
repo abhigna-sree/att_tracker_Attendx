@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Buffer } from 'buffer';
+import { Buffer } from "buffer";
 import { useNavigation } from "@react-navigation/native";
 import jwtDecode from "jwt-decode";
 
@@ -30,8 +30,10 @@ const CurrentProject = () => {
         }
 
         // const decodedToken = jwtDecode(token);
-        const decodedToken = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString())
-        
+        const decodedToken = JSON.parse(
+          Buffer.from(token.split(".")[1], "base64").toString()
+        );
+
         const stuid = decodedToken.rollno;
 
         const [mentorsRes, projectsRes] = await Promise.all([
@@ -169,62 +171,71 @@ const CurrentProject = () => {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: "#1f1f1f",
+    backgroundColor: "#EDE8F5",
+    minHeight: "100%",
   },
   heading: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "bold",
-    color: "white",
+    color: "#000",
     textAlign: "center",
     marginVertical: 16,
   },
   noProjects: {
-    color: "#aaa",
+    color: "#666",
     textAlign: "center",
     fontSize: 16,
   },
   projectCard: {
-    backgroundColor: "#2a2a2a",
+    backgroundColor: "#ADBBDA",
     padding: 16,
-    borderRadius: 8,
+    borderRadius: 10,
     marginBottom: 16,
+    elevation: 5,
   },
   projectTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#fff",
+    color: "#000",
     marginBottom: 8,
   },
   projectText: {
     fontSize: 14,
-    color: "#ccc",
+    color: "#000",
     marginBottom: 4,
   },
   attendanceCard: {
-    backgroundColor: "#2d2d2d",
+    backgroundColor: "#ADBBDA",
     padding: 16,
-    borderRadius: 8,
+    borderRadius: 10,
     marginBottom: 24,
+    elevation: 5,
   },
   subHeading: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: "bold",
-    color: "#fff",
-    marginBottom: 8,
+    color: "#000",
+    marginBottom: 12,
     textAlign: "center",
   },
   attendanceRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingVertical: 6,
+    paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: "#444",
+    borderBottomColor: "#3D52A0",
+    backgroundColor: "#fff",
+    marginBottom: 4,
+    borderRadius: 5,
+    padding: 10,
   },
   attendanceText: {
-    color: "#ccc",
+    color: "#000",
+    fontSize: 14,
   },
   attendanceStatus: {
     fontWeight: "bold",
+    fontSize: 14,
   },
   present: {
     color: "#28a745",
@@ -239,7 +250,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#1f1f1f",
+    backgroundColor: "#EDE8F5",
   },
 });
 

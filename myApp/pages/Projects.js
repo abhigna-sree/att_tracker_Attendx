@@ -123,31 +123,33 @@ const Projects = () => {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: "#fff",
+    backgroundColor: "#EDE8F5",
+    minHeight: "100%",
   },
   heading: {
     fontSize: 24,
     fontWeight: "bold",
     textAlign: "center",
     marginVertical: 16,
+    color: "#000",
   },
   searchInput: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 8,
+    borderColor: "#3D52A0",
+    borderRadius: 10,
+    padding: 12,
     marginBottom: 16,
+    backgroundColor: "#fff",
   },
   list: {
     paddingBottom: 16,
   },
   card: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
+    borderRadius: 10,
     marginBottom: 16,
     overflow: "hidden",
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#ADBBDA",
+    elevation: 5,
   },
   image: {
     width: "100%",
@@ -160,25 +162,27 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 8,
+    color: "#000",
   },
   cardText: {
     marginBottom: 4,
+    color: "#000",
   },
   button: {
     marginTop: 8,
-    backgroundColor: "#007bff",
+    backgroundColor: "#3D52A0",
     paddingVertical: 10,
-    borderRadius: 4,
+    borderRadius: 5,
     alignItems: "center",
   },
   buttonText: {
-    color: "#fff",
+    color: "white",
     fontWeight: "bold",
   },
   noProjectsText: {
     textAlign: "center",
     marginTop: 16,
-    color: "#888",
+    color: "#000",
   },
 });
 

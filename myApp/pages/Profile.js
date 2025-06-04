@@ -72,8 +72,14 @@ const Profile = () => {
       return;
     }
 
-    const token = await localStorage.getItem("token");
     try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) {
+        setMessage("❌ Not authenticated. Please login again.");
+        navigation.navigate("Login");
+        return;
+      }
+
       const response = await fetch(
         `http://192.168.230.46:4000/vendor/updatePwd`,
         {
@@ -87,16 +93,18 @@ const Profile = () => {
       );
 
       const data = await response.json();
-      setMessage(
-        data.message
-          ? "✅ Password updated successfully!"
-          : "❌ " + data.message
-      );
-      setOldPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
+
+      if (response.ok) {
+        setMessage("✅ Password updated successfully!");
+        setOldPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        setMessage("❌ " + (data.message || "Failed to update password"));
+      }
     } catch (error) {
-      setMessage("❌ Error updating password.");
+      console.error("Error updating password:", error);
+      setMessage("❌ Error updating password. Please try again.");
     }
   };
 
@@ -193,7 +201,7 @@ const Profile = () => {
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    backgroundColor: "#f8f9fa",
+    backgroundColor: "#EDE8F5",
     flexGrow: 1,
     justifyContent: "center",
   },

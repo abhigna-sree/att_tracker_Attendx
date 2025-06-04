@@ -1,8 +1,21 @@
 import React, { useState } from "react";
-import { View, Text, Button, TouchableOpacity, StyleSheet, Modal, TextInput, ScrollView, Alert } from "react-native";
+import {
+  View,
+  Text,
+  Button,
+  TouchableOpacity,
+  StyleSheet,
+  Modal,
+  TextInput,
+  ScrollView,
+  Alert,
+  Platform,
+} from "react-native";
 import axios from "axios";
 import StudentAttendance from "../components/StudentAttendance";
 import { useRoute } from "@react-navigation/native";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { Ionicons } from "@expo/vector-icons";
 
 const MarkAttendance = () => {
   const today = new Date().toISOString().split("T")[0];
@@ -13,12 +26,15 @@ const MarkAttendance = () => {
   const [isProjectFetched, setIsProjectFetched] = useState(false);
   const [resetTrigger, setResetTrigger] = useState(0);
   const [selectedClasses, setSelectedClasses] = useState([]);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const route = useRoute();
   const { pid } = route.params;
 
   const fetchStudents = async () => {
     try {
-      const { data: studentsList } = await axios.get(`http://192.168.230.46:4000/students/${pid}`);
+      const { data: studentsList } = await axios.get(
+        `http://192.168.230.46:4000/students/${pid}`
+      );
       const updatedStudents = studentsList.map((student) => ({
         ...student,
         attendanceStatus: true,
@@ -37,7 +53,9 @@ const MarkAttendance = () => {
 
     try {
       const response = await axios.get(
-        `http://192.168.230.46:4000/attendance?pid=${pid}&date=${attendanceDate}&classHours=${selectedClassHours.join(",")}`
+        `http://192.168.230.46:4000/attendance?pid=${pid}&date=${attendanceDate}&classHours=${selectedClassHours.join(
+          ","
+        )}`
       );
       return response.data;
     } catch (error) {
@@ -61,35 +79,64 @@ const MarkAttendance = () => {
         attendanceStatus: student.attendanceStatus === true,
       }));
 
-      await axios.post("http://192.168.230.46:4000/api/attendance", { attendanceData });
+      await axios.post("http://192.168.230.46:4000/api/attendance", {
+        attendanceData,
+      });
 
       setShowPopup(true);
       setSelectedClasses([]);
       setResetTrigger((prev) => prev + 1);
     } catch (error) {
-      console.error("❌ Error submitting attendance:", error.response?.data || error.message);
+      console.error(
+        "❌ Error submitting attendance:",
+        error.response?.data || error.message
+      );
+    }
+  };
+
+  const handleDateChange = (event, selectedDate) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      setAttendanceDate(selectedDate.toISOString().split("T")[0]);
     }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 10 }}>
-        Student Attendance Management
-      </Text>
+      <Text style={styles.heading}>Student Attendance Management</Text>
 
       <TouchableOpacity onPress={fetchStudents} style={styles.fetchButton}>
-        <Text style={{ color: "white" }}>Fetch Students</Text>
+        <Text style={styles.buttonText}>Fetch Students</Text>
       </TouchableOpacity>
 
       {isProjectFetched && (
         <>
           <Text style={styles.label}>Select Attendance Date:</Text>
-          <TextInput
-            style={styles.largeDateInput}
-            value={attendanceDate}
-            onChangeText={(text) => setAttendanceDate(text)}
-            placeholder="YYYY-MM-DD"
-          />
+          <View style={styles.dateInputContainer}>
+            <TextInput
+              style={styles.dateInput}
+              value={attendanceDate}
+              onChangeText={(text) => setAttendanceDate(text)}
+              placeholder="YYYY-MM-DD"
+              editable={false}
+            />
+            <TouchableOpacity
+              style={styles.calendarIcon}
+              onPress={() => setShowDatePicker(true)}
+            >
+              <Ionicons name="calendar" size={24} color="#3D52A0" />
+            </TouchableOpacity>
+          </View>
+
+          {showDatePicker && (
+            <DateTimePicker
+              value={attendanceDate ? new Date(attendanceDate) : new Date()}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={handleDateChange}
+            />
+          )}
+
           <Text style={styles.label}>Select Class Hours:</Text>
 
           <StudentAttendance
@@ -102,7 +149,7 @@ const MarkAttendance = () => {
           />
 
           <TouchableOpacity onPress={handleSubmit} style={styles.submitButton}>
-            <Text style={{ color: "white" }}>Submit</Text>
+            <Text style={styles.buttonText}>Submit</Text>
           </TouchableOpacity>
         </>
       )}
@@ -119,7 +166,9 @@ const MarkAttendance = () => {
       <Modal visible={showWarningPopup} transparent animationType="slide">
         <View style={styles.popupOverlay}>
           <View style={styles.popupBox}>
-            <Text>⚠ Please select at least one class hour before submitting!</Text>
+            <Text>
+              ⚠ Please select at least one class hour before submitting!
+            </Text>
             <Button title="OK" onPress={() => setShowWarningPopup(false)} />
           </View>
         </View>
@@ -131,7 +180,66 @@ const MarkAttendance = () => {
 const styles = StyleSheet.create({
   container: {
     alignItems: "center",
+    backgroundColor: "#EDE8F5",
+    minHeight: "100%",
     padding: 20,
+  },
+  heading: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
+    color: "#000",
+  },
+  dateInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: 250,
+    marginBottom: 15,
+    backgroundColor: "#fff",
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: "#3D52A0",
+  },
+  dateInput: {
+    flex: 1,
+    padding: 12,
+    fontSize: 16,
+    color: "#000",
+  },
+  calendarIcon: {
+    padding: 12,
+    borderLeftWidth: 1,
+    borderLeftColor: "#3D52A0",
+  },
+  label: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginVertical: 10,
+    textAlign: "center",
+    color: "#000",
+    width: "100%",
+  },
+  fetchButton: {
+    padding: 12,
+    backgroundColor: "#3D52A0",
+    borderRadius: 5,
+    marginBottom: 20,
+    minWidth: 150,
+    alignItems: "center",
+  },
+  submitButton: {
+    marginTop: 20,
+    padding: 12,
+    backgroundColor: "#3D52A0",
+    borderRadius: 5,
+    minWidth: 150,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
   },
   popupOverlay: {
     flex: 1,
@@ -144,30 +252,6 @@ const styles = StyleSheet.create({
     padding: 30,
     borderRadius: 10,
     alignItems: "center",
-  },
-  label: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginVertical: 10,
-  },
-  fetchButton: {
-    padding: 10,
-    backgroundColor: "#4CAF50",
-    borderRadius: 5,
-  },
-  submitButton: {
-    marginTop: 20,
-    padding: 10,
-    backgroundColor: "blue",
-    borderRadius: 5,
-  },
-  largeDateInput: {
-    padding: 12,
-    fontSize: 18,
-    width: 250,
-    borderBottomWidth: 1,
-    borderColor: "#ccc",
-    marginBottom: 15,
   },
 });
 

@@ -1,15 +1,15 @@
-const User = require('../models/User');
-const Project = require('../models/Projects');
-const ProjectAssignment = require('../models/projectAssignment');
-const Attendance = require('../models/Attendance');
-const dotenv = require('dotenv');
-const bcrypt = require('bcrypt');
+const User = require("../models/User");
+const Project = require("../models/Projects");
+const ProjectAssignment = require("../models/projectAssignment");
+const Attendance = require("../models/Attendance");
+const dotenv = require("dotenv");
+const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
 
 dotenv.config();
-const fs = require('fs');
-const projectAssignment = require('../models/projectAssignment');
+const fs = require("fs");
+const projectAssignment = require("../models/projectAssignment");
 
 const generateToken = (user) => {
   return jwt.sign(
@@ -29,7 +29,15 @@ const signup = async (req, res) => {
       return res.status(400).json({ msg: "User already exists" });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({name,rollno,phone,password: hashedPassword,dept,section,role: "student",});
+    const user = await User.create({
+      name,
+      rollno,
+      phone,
+      password: hashedPassword,
+      dept,
+      section,
+      role: "student",
+    });
     await user.save();
     const token = generateToken(user);
     res.status(201).json({ user, token, success: true });
@@ -45,7 +53,8 @@ const login = async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const isMatch = await bcrypt.compare(req.body.password, user.password);
-    if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
+    if (!isMatch)
+      return res.status(401).json({ message: "Invalid credentials" });
 
     const token = generateToken(user);
     // const token = jwt.sign({id: user._id, role: user.role}, secretkey, { expiresIn: "1h"});
@@ -59,7 +68,12 @@ const login = async (req, res) => {
       dashboard = "/adminDashboard";
     }
 
-    res.json({ message: "Login successful", token, role: user.role, dashboard });
+    res.json({
+      message: "Login successful",
+      token,
+      role: user.role,
+      dashboard,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -68,18 +82,49 @@ const login = async (req, res) => {
 const updatePwd = async (req, res) => {
   const { userId, oldPassword, newPassword } = req.body;
 
+  // Validate input
+  if (!userId || !oldPassword || !newPassword) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  // Validate that the user making the request matches the userId
+  if (req.user.id !== userId) {
+    return res
+      .status(403)
+      .json({ message: "Unauthorized to update this user's password" });
+  }
+
   try {
     const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     const isMatch = await bcrypt.compare(oldPassword, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Incorrect old password" });
+    if (!isMatch) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+
+    // Check if new password is same as old password
+    const isSamePassword = await bcrypt.compare(newPassword, user.password);
+    if (isSamePassword) {
+      return res
+        .status(400)
+        .json({
+          message: "New password must be different from current password",
+        });
+    }
+
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
     await user.save();
 
     res.json({ message: "Password updated successfully!" });
   } catch (error) {
-    res.status(500).json({ message: "Error updating password." });
+    console.error("Password update error:", error);
+    res
+      .status(500)
+      .json({ message: "Error updating password. Please try again." });
   }
 };
 
@@ -110,31 +155,45 @@ const apply = async (req, res) => {
 
   try {
     const ifstudent = await User.find({ rollno: { $in: teamMembers } });
-    const foundRolls = ifstudent.map(user => user.rollno);
-    const missingRolls = teamMembers.filter(rollNo => !foundRolls.includes(rollNo));
+    const foundRolls = ifstudent.map((user) => user.rollno);
+    const missingRolls = teamMembers.filter(
+      (rollNo) => !foundRolls.includes(rollNo)
+    );
 
     if (missingRolls.length > 0) {
-      return res.status(400).json({ message: `Student(s) ${missingRolls.join(", ")} do not exist` });
+      return res
+        .status(400)
+        .json({
+          message: `Student(s) ${missingRolls.join(", ")} do not exist`,
+        });
     }
-    const existingApplications = await ProjectAssignment.find({ rollNo: { $in: teamMembers } });
+    const existingApplications = await ProjectAssignment.find({
+      rollNo: { $in: teamMembers },
+    });
 
     if (existingApplications.length > 0) {
-      const appliedRollNos = existingApplications.map(app => app.rollNo);
-      const duplicateMembers = teamMembers.filter(rollNo => appliedRollNos.includes(rollNo));
+      const appliedRollNos = existingApplications.map((app) => app.rollNo);
+      const duplicateMembers = teamMembers.filter((rollNo) =>
+        appliedRollNos.includes(rollNo)
+      );
 
       return res.status(400).json({
-        message: `Team member(s) ${duplicateMembers.join(", ")} have already applied for another project.`
+        message: `Team member(s) ${duplicateMembers.join(
+          ", "
+        )} have already applied for another project.`,
       });
     }
     const project = await Project.findOne({ pid: projectId });
     if (!project || project.slots <= 0) {
-      return res.status(400).json({ message: "No slots available for this project." });
+      return res
+        .status(400)
+        .json({ message: "No slots available for this project." });
     }
     project.slots -= 1;
     await project.save();
 
     // const teamId = uuidv4();
-    const teamId = uuidv4().split('-')[0];
+    const teamId = uuidv4().split("-")[0];
     const assignments = teamMembers.map((rollNo) => ({
       rollNo,
       projectId,
@@ -144,8 +203,9 @@ const apply = async (req, res) => {
 
     await ProjectAssignment.insertMany(assignments);
 
-    res.status(201).json({ message: "Application submitted successfully!", teamId });
-
+    res
+      .status(201)
+      .json({ message: "Application submitted successfully!", teamId });
   } catch (error) {
     console.error("Error applying for project:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -157,28 +217,38 @@ const getStudentProjects = async (req, res) => {
   try {
     const assignments = await ProjectAssignment.find({ rollNo: stuid });
     if (!assignments || assignments.length === 0) {
-      return res.status(404).json({ message: 'No project assignments found for this student.' });
+      return res
+        .status(404)
+        .json({ message: "No project assignments found for this student." });
     }
-    const projectIds = assignments.map(assignment => assignment.projectId);
-    const projects = await Project.find({ 'pid': { $in: projectIds } });
-    const studentProjects = assignments.map(assignment => {
-      const project = projects.find(p => p.pid.toString() === assignment.projectId.toString());
-      if (!project) {
-        console.error(`Project not found for assignment with projectId: ${assignment.projectId}`);
-        return null;
-      }
-      return {
-        pid: project.pid,
-        title: project.title,
-        description: project.description,
-        mentor: project.mentor,
-        executionStartDate: project.executionStartDate,
-        executionEndDate: project.executionEndDate,
-        teamId: assignment.teamId
-      };
-    }).filter(project => project !== null);
+    const projectIds = assignments.map((assignment) => assignment.projectId);
+    const projects = await Project.find({ pid: { $in: projectIds } });
+    const studentProjects = assignments
+      .map((assignment) => {
+        const project = projects.find(
+          (p) => p.pid.toString() === assignment.projectId.toString()
+        );
+        if (!project) {
+          console.error(
+            `Project not found for assignment with projectId: ${assignment.projectId}`
+          );
+          return null;
+        }
+        return {
+          pid: project.pid,
+          title: project.title,
+          description: project.description,
+          mentor: project.mentor,
+          executionStartDate: project.executionStartDate,
+          executionEndDate: project.executionEndDate,
+          teamId: assignment.teamId,
+        };
+      })
+      .filter((project) => project !== null);
     if (studentProjects.length === 0) {
-      return res.status(404).json({ message: 'No valid projects found for this student.' });
+      return res
+        .status(404)
+        .json({ message: "No valid projects found for this student." });
     }
     res.status(200).json(studentProjects);
   } catch (error) {
@@ -189,13 +259,16 @@ const getStudentProjects = async (req, res) => {
 
 const updatepid = async (req, res) => {
   try {
-    const updatedProject = await Project.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updatedProject = await Project.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
     res.json(updatedProject);
   } catch (error) {
     res.status(500).json({ message: "Error updating project" });
   }
 };
-
 
 const uploadusers = async (req, res) => {
   try {
@@ -238,7 +311,6 @@ const uploadusers = async (req, res) => {
       res.json({
         message: `Users uploaded successfully! (${successfulUploads.length}/${jsonData.length})`,
       });
-
     } catch (parseError) {
       console.error("Error parsing JSON:", parseError);
       res.status(400).json({ message: "Invalid JSON format" });
@@ -249,12 +321,29 @@ const uploadusers = async (req, res) => {
   }
 };
 
-
 // admin functions
 const createProject = async (req, res) => {
   try {
-    const { pid, projectName, projectDesc, projectDeadline, executionStartDate, executionEndDate, projectSlots, mentor } = req.body;
-    console.log(pid, projectName, projectDesc, projectDeadline, executionStartDate, executionEndDate, projectSlots, mentor);
+    const {
+      pid,
+      projectName,
+      projectDesc,
+      projectDeadline,
+      executionStartDate,
+      executionEndDate,
+      projectSlots,
+      mentor,
+    } = req.body;
+    console.log(
+      pid,
+      projectName,
+      projectDesc,
+      projectDeadline,
+      executionStartDate,
+      executionEndDate,
+      projectSlots,
+      mentor
+    );
     const projectImage = req.file ? req.file.filename : null;
     const project = await Project.create({
       pid: pid,
@@ -284,7 +373,6 @@ const createProject = async (req, res) => {
   }
 };
 
-
 const getProjects = async (req, res) => {
   try {
     const projects = await Project.find();
@@ -303,27 +391,37 @@ const getFacProjects = async (req, res) => {
   try {
     const assignments = await ProjectAssignment.find({ rollNo: facid });
     if (!assignments || assignments.length === 0) {
-      return res.status(404).json({ message: 'No project assignments found for this Mentor.' });
+      return res
+        .status(404)
+        .json({ message: "No project assignments found for this Mentor." });
     }
-    const projectIds = assignments.map(assignment => assignment.projectId);
-    const projects = await Project.find({ 'pid': { $in: projectIds } });
-    const studentProjects = assignments.map(assignment => {
-      const project = projects.find(p => p.pid.toString() === assignment.projectId.toString());
-      if (!project) {
-        console.error(`Project not found for assignment with projectId: ${assignment.projectId}`);
-        return null;
-      }
-      return {
-        pid: project.pid,
-        title: project.title,
-        description: project.description,
-        executionStartDate: project.executionStartDate,
-        executionEndDate: project.executionEndDate,
-        slots: project.slots
-      };
-    }).filter(project => project !== null);
+    const projectIds = assignments.map((assignment) => assignment.projectId);
+    const projects = await Project.find({ pid: { $in: projectIds } });
+    const studentProjects = assignments
+      .map((assignment) => {
+        const project = projects.find(
+          (p) => p.pid.toString() === assignment.projectId.toString()
+        );
+        if (!project) {
+          console.error(
+            `Project not found for assignment with projectId: ${assignment.projectId}`
+          );
+          return null;
+        }
+        return {
+          pid: project.pid,
+          title: project.title,
+          description: project.description,
+          executionStartDate: project.executionStartDate,
+          executionEndDate: project.executionEndDate,
+          slots: project.slots,
+        };
+      })
+      .filter((project) => project !== null);
     if (studentProjects.length === 0) {
-      return res.status(404).json({ message: 'No valid projects found for this student.' });
+      return res
+        .status(404)
+        .json({ message: "No valid projects found for this student." });
     }
     res.status(200).json(studentProjects);
   } catch (error) {
@@ -335,9 +433,14 @@ const getFacProjects = async (req, res) => {
 const studentsRegistered = async (req, res) => {
   try {
     const { pid } = req.params;
-    const students = await projectAssignment.find({ projectId: pid, role: "student" });
+    const students = await projectAssignment.find({
+      projectId: pid,
+      role: "student",
+    });
     if (!students.length) {
-      return res.status(404).json({ message: "No students registered for this project." });
+      return res
+        .status(404)
+        .json({ message: "No students registered for this project." });
     }
     const studentDetails = await Promise.all(
       students.map(async (student) => {
@@ -380,38 +483,38 @@ const markAttendance = async (req, res) => {
   }
 };
 
-
 const getAttendance = async (req, res) => {
   const { projectID, date, classHours } = req.query;
 
   if (!projectID || !date || !classHours) {
-      return res.status(400).json({ error: "Missing query parameters" });
+    return res.status(400).json({ error: "Missing query parameters" });
   }
 
   try {
-      const attendanceRecords = await Attendance.find({
-          projectId: projectID,
-          date: date,
-          selectedClasses: { $in: classHours.split(",") } // Ensure classHours is processed correctly
-      });
+    const attendanceRecords = await Attendance.find({
+      projectId: projectID,
+      date: date,
+      selectedClasses: { $in: classHours.split(",") }, // Ensure classHours is processed correctly
+    });
 
-      if (!attendanceRecords.length) {
-          return res.status(404).json({ error: "No attendance records found" });
-      }
+    if (!attendanceRecords.length) {
+      return res.status(404).json({ error: "No attendance records found" });
+    }
 
-      res.json(attendanceRecords);
+    res.json(attendanceRecords);
   } catch (error) {
-      console.error("❌ Error fetching attendance:", error);
-      res.status(500).json({ error: "Server error" });
+    console.error("❌ Error fetching attendance:", error);
+    res.status(500).json({ error: "Server error" });
   }
 };
-
 
 // attednance
 const getStudents = async (req, res) => {
   try {
     console.log("entered");
-    const students = await projectAssignment.find({ projectId: req.params.pid });
+    const students = await projectAssignment.find({
+      projectId: req.params.pid,
+    });
     console.log(students);
     res.json(students);
   } catch (error) {
@@ -419,4 +522,21 @@ const getStudents = async (req, res) => {
   }
 };
 
-  module.exports = { login, signup, updatePwd, uploadusers, projects, mentors, createProject, updatepid, getProjects, apply, getStudentProjects, getFacProjects,studentsRegistered, markAttendance, getAttendance, getStudents };
+module.exports = {
+  login,
+  signup,
+  updatePwd,
+  uploadusers,
+  projects,
+  mentors,
+  createProject,
+  updatepid,
+  getProjects,
+  apply,
+  getStudentProjects,
+  getFacProjects,
+  studentsRegistered,
+  markAttendance,
+  getAttendance,
+  getStudents,
+};

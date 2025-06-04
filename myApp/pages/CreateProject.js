@@ -13,15 +13,23 @@ import {
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import * as ImagePicker from "expo-image-picker";
-import jwtDecode from "jwt-decode";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import { Buffer } from 'buffer';
+import { Buffer } from "buffer";
 import { useNavigation } from "@react-navigation/native";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { Ionicons } from "@expo/vector-icons";
 
 const CreateProject = () => {
   const navigation = useNavigation();
   const [mentors, setMentors] = useState([]);
+  const [userRole, setUserRole] = useState(null);
+  const [showDatePicker, setShowDatePicker] = useState({
+    deadline: false,
+    startDate: false,
+    endDate: false,
+  });
+
   const [formData, setFormData] = useState({
     pid: "",
     projectName: "",
@@ -48,9 +56,20 @@ const CreateProject = () => {
           Buffer.from(token.split(".")[1], "base64").toString()
         );
 
-        if (decoded.role !== "admin") {
+        if (decoded.role !== "admin" && decoded.role !== "faculty") {
           Alert.alert("Unauthorized", "Access denied. Redirecting...");
           navigation.navigate("Login");
+          return;
+        }
+
+        setUserRole(decoded.role);
+
+        // If user is faculty, set them as the mentor
+        if (decoded.role === "faculty") {
+          setFormData((prev) => ({
+            ...prev,
+            mentor: decoded.id, // Set the faculty's ID as the mentor
+          }));
         }
       } catch (error) {
         console.error("Token decode error:", error);
@@ -59,10 +78,19 @@ const CreateProject = () => {
 
     fetchUserData();
 
-    axios
-      .get("http://192.168.230.46:4000/vendor/mentors")
-      .then((response) => setMentors(response.data))
-      .catch((error) => console.error("Error fetching mentors:", error));
+    // Only fetch mentors list if user is admin
+    const fetchMentors = async () => {
+      try {
+        const response = await axios.get(
+          "http://192.168.230.46:4000/vendor/mentors"
+        );
+        setMentors(response.data);
+      } catch (error) {
+        console.error("Error fetching mentors:", error);
+      }
+    };
+
+    fetchMentors();
   }, []);
 
   const handleImagePick = async () => {
@@ -79,6 +107,25 @@ const CreateProject = () => {
 
   const handleChange = (name, value) => {
     setFormData({ ...formData, [name]: value });
+  };
+
+  const handleDateChange = (event, selectedDate, field) => {
+    setShowDatePicker((prev) => ({ ...prev, [field]: false }));
+    if (selectedDate) {
+      const formattedDate = selectedDate.toISOString().split("T")[0];
+      handleChange(
+        field === "deadline"
+          ? "projectDeadline"
+          : field === "startDate"
+          ? "executionStartDate"
+          : "executionEndDate",
+        formattedDate
+      );
+    }
+  };
+
+  const showDatepicker = (field) => {
+    setShowDatePicker((prev) => ({ ...prev, [field]: true }));
   };
 
   const handleSubmit = async () => {
@@ -114,7 +161,10 @@ const CreateProject = () => {
       );
 
       Alert.alert("Success", "Project created successfully!");
-      navigation.navigate("AdminDashboard");
+      // Navigate based on user role
+      navigation.navigate(
+        userRole === "admin" ? "adminDashboard" : "facultyDashboard"
+      );
     } catch (error) {
       console.error("Project creation error:", error);
       Alert.alert("Error", "Failed to create project.");
@@ -148,26 +198,92 @@ const CreateProject = () => {
         onChangeText={(text) => handleChange("projectDesc", text)}
       />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Registration Deadline (YYYY-MM-DD)"
-        value={formData.projectDeadline}
-        onChangeText={(text) => handleChange("projectDeadline", text)}
-      />
+      <View style={styles.dateInputContainer}>
+        <TextInput
+          style={styles.dateInput}
+          placeholder="Registration Deadline (YYYY-MM-DD)"
+          value={formData.projectDeadline}
+          onChangeText={(text) => handleChange("projectDeadline", text)}
+          editable={false}
+        />
+        <TouchableOpacity
+          style={styles.calendarIcon}
+          onPress={() => showDatepicker("deadline")}
+        >
+          <Ionicons name="calendar" size={24} color="#3D52A0" />
+        </TouchableOpacity>
+      </View>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Start Date (YYYY-MM-DD)"
-        value={formData.executionStartDate}
-        onChangeText={(text) => handleChange("executionStartDate", text)}
-      />
+      <View style={styles.dateInputContainer}>
+        <TextInput
+          style={styles.dateInput}
+          placeholder="Start Date (YYYY-MM-DD)"
+          value={formData.executionStartDate}
+          onChangeText={(text) => handleChange("executionStartDate", text)}
+          editable={false}
+        />
+        <TouchableOpacity
+          style={styles.calendarIcon}
+          onPress={() => showDatepicker("startDate")}
+        >
+          <Ionicons name="calendar" size={24} color="#3D52A0" />
+        </TouchableOpacity>
+      </View>
 
-      <TextInput
-        style={styles.input}
-        placeholder="End Date (YYYY-MM-DD)"
-        value={formData.executionEndDate}
-        onChangeText={(text) => handleChange("executionEndDate", text)}
-      />
+      <View style={styles.dateInputContainer}>
+        <TextInput
+          style={styles.dateInput}
+          placeholder="End Date (YYYY-MM-DD)"
+          value={formData.executionEndDate}
+          onChangeText={(text) => handleChange("executionEndDate", text)}
+          editable={false}
+        />
+        <TouchableOpacity
+          style={styles.calendarIcon}
+          onPress={() => showDatepicker("endDate")}
+        >
+          <Ionicons name="calendar" size={24} color="#3D52A0" />
+        </TouchableOpacity>
+      </View>
+
+      {showDatePicker.deadline && (
+        <DateTimePicker
+          value={
+            formData.projectDeadline
+              ? new Date(formData.projectDeadline)
+              : new Date()
+          }
+          mode="date"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={(event, date) => handleDateChange(event, date, "deadline")}
+        />
+      )}
+
+      {showDatePicker.startDate && (
+        <DateTimePicker
+          value={
+            formData.executionStartDate
+              ? new Date(formData.executionStartDate)
+              : new Date()
+          }
+          mode="date"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={(event, date) => handleDateChange(event, date, "startDate")}
+        />
+      )}
+
+      {showDatePicker.endDate && (
+        <DateTimePicker
+          value={
+            formData.executionEndDate
+              ? new Date(formData.executionEndDate)
+              : new Date()
+          }
+          mode="date"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={(event, date) => handleDateChange(event, date, "endDate")}
+        />
+      )}
 
       <TextInput
         style={styles.input}
@@ -177,27 +293,29 @@ const CreateProject = () => {
         onChangeText={(text) => handleChange("projectSlots", text)}
       />
 
-      <View style={styles.pickerContainer}>
-        <Picker
-          selectedValue={formData.mentor}
-          onValueChange={(itemValue) => handleChange("mentor", itemValue)}
-          mode="dropdown"
-          style={{
-            height: 50,
-            width: "100%",
-            color: formData.mentor ? "#000" : "#999", // Gray if no mentor selected
-          }}
-        >
-          <Picker.Item label="Select a Mentor" value="" />
-          {mentors.map((mentor) => (
-            <Picker.Item
-              key={mentor._id}
-              label={mentor.name}
-              value={mentor._id}
-            />
-          ))}
-        </Picker>
-      </View>
+      {userRole === "admin" && (
+        <View style={styles.pickerContainer}>
+          <Picker
+            selectedValue={formData.mentor}
+            onValueChange={(itemValue) => handleChange("mentor", itemValue)}
+            mode="dropdown"
+            style={{
+              height: 50,
+              width: "100%",
+              color: formData.mentor ? "#000" : "#999",
+            }}
+          >
+            <Picker.Item label="Select a Mentor" value="" />
+            {mentors.map((mentor) => (
+              <Picker.Item
+                key={mentor._id}
+                label={mentor.name}
+                value={mentor._id}
+              />
+            ))}
+          </Picker>
+        </View>
+      )}
 
       <TouchableOpacity
         onPress={handleImagePick}
@@ -213,7 +331,9 @@ const CreateProject = () => {
         />
       )}
 
-      <Button title="Create Project" onPress={handleSubmit} color="#007BFF" />
+      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+        <Text style={styles.buttonText}>Create Project</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 };
@@ -221,7 +341,8 @@ const CreateProject = () => {
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    marginTop: 30,
+    backgroundColor: "#EDE8F5",
+    minHeight: "100%",
   },
   heading: {
     fontSize: 24,
@@ -235,24 +356,20 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     marginBottom: 15,
-  },
-  label: {
-    marginBottom: 5,
-    fontWeight: "500",
+    backgroundColor: "#fff",
   },
   pickerContainer: {
-  borderWidth: 1,
-  borderColor: "#999",
-  borderRadius: 5,
-  marginBottom: 15,
-  paddingHorizontal: 10,
-  backgroundColor: "#f9f9f9",
-  height: 50,
-  justifyContent: "center",
-},
-
+    borderWidth: 1,
+    borderColor: "#999",
+    borderRadius: 5,
+    marginBottom: 15,
+    paddingHorizontal: 10,
+    backgroundColor: "#f9f9f9",
+    height: 50,
+    justifyContent: "center",
+  },
   imagePickerButton: {
-    backgroundColor: "#007BFF",
+    backgroundColor: "#3D52A0",
     padding: 10,
     borderRadius: 5,
     marginBottom: 15,
@@ -267,6 +384,37 @@ const styles = StyleSheet.create({
     height: 200,
     marginBottom: 20,
     borderRadius: 5,
+  },
+  submitButton: {
+    backgroundColor: "#3D52A0",
+    padding: 12,
+    borderRadius: 5,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  dateInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#999",
+    borderRadius: 5,
+    marginBottom: 15,
+    backgroundColor: "#fff",
+  },
+  dateInput: {
+    flex: 1,
+    padding: 10,
+    color: "#000",
+  },
+  calendarIcon: {
+    padding: 10,
+    borderLeftWidth: 1,
+    borderLeftColor: "#999",
   },
 });
 
