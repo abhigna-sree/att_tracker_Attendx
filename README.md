@@ -70,7 +70,7 @@ AttendX/
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/AttendX.git
+git clone https://github.com/abhigna-sree/att_tracker_Attendx.git
 cd AttendX
 ```
 
@@ -93,9 +93,7 @@ npm install
 Create a `.env` file:
 
 ```env
-PORT=5000
-MONGO_URI=your_mongodb_connection
-JWT_SECRET=your_secret_key
+PORT=500
 ```
 
 ### 5. Start the Backend Server
